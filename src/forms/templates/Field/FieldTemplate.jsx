@@ -114,7 +114,10 @@ const FieldTemplate = ({
           }
           labelCol={labelCol}
           required={required}
-          style={wrapperStyle}
+          style={{
+            ...wrapperStyle,
+            marginBottom: uiSchema["ui:label"] === false ? 0 : undefined,
+          }}
           validateStatus={rawErrors ? "error" : undefined}
           wrapperCol={wrapperCol}
           tooltip={schema.tooltip}

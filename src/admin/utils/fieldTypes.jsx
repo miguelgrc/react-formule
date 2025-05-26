@@ -55,8 +55,14 @@ export const common = {
             type: "integer",
             kind: "discrete",
             defaultValue: 24,
-            values: [6, 8, 12, 16, 18, 24],
-            labels: ["25%", "33%", "50%", "66%", "75%", "100%"],
+            oneOf: [
+              { const: 6, title: "25%" },
+              { const: 8, title: "33%" },
+              { const: 12, title: "50%" },
+              { const: 16, title: "66%" },
+              { const: 18, title: "75%" },
+              { const: 24, title: "100%" },
+            ],
           },
           showAsModal: {
             title: "Display as Modal",
@@ -90,15 +96,14 @@ export const common = {
                         tooltip:
                           "On small screens modals will ignore this setting and use full screen width",
                         kind: "discrete",
-                        values: [0, 25, 33, 50, 66, 75, 100],
-                        labels: [
-                          "auto",
-                          "25%",
-                          "33%",
-                          "50%",
-                          "66%",
-                          "75%",
-                          "100%",
+                        oneOf: [
+                          { const: 0, title: "auto" },
+                          { const: 25, title: "25%" },
+                          { const: 33, title: "33%" },
+                          { const: 50, title: "50%" },
+                          { const: 66, title: "66%" },
+                          { const: 75, title: "75%" },
+                          { const: 100, title: "100%" },
                         ],
                       },
                       buttonInNewLine: {
@@ -1584,18 +1589,16 @@ const advanced = {
           },
           then: {
             properties: {
-              values: {
-                title: "Values",
+              oneOf: {
+                title: "Elements",
                 type: "array",
                 items: {
-                  type: "number",
-                },
-              },
-              labels: {
-                title: "Labels",
-                type: "array",
-                items: {
-                  type: "string",
+                  title: "Element",
+                  type: "object",
+                  properties: {
+                    const: { type: "number" },
+                    title: { type: "string" },
+                  },
                 },
               },
             },
@@ -1604,6 +1607,22 @@ const advanced = {
       ],
     },
     optionsSchemaUiSchema: {
+      ...common.optionsSchemaUiSchema,
+      oneOf: {
+        items: {
+          "ui:label": false,
+          const: {
+            "ui:options": { span: 12 },
+            "ui:placeholder": "Value",
+            "ui:label": false,
+          },
+          title: {
+            "ui:options": { span: 12 },
+            "ui:placeholder": "Label",
+            "ui:label": false,
+          },
+        },
+      },
       readOnly: extra.optionsSchemaUiSchema.readOnly,
       isRequired: extra.optionsSchemaUiSchema.isRequired,
     },
@@ -1636,6 +1655,7 @@ const advanced = {
       },
     },
     optionsUiSchemaUiSchema: {
+      ...common.optionsUiSchemaUiSchema,
       "ui:options": {
         ...common.optionsUiSchemaUiSchema["ui:options"],
         hideInput: {

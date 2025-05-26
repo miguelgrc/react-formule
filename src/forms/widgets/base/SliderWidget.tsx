@@ -3,8 +3,10 @@ import { useState } from "react";
 
 interface SliderSchema {
   defaultValue?: number;
-  values?: number[];
-  labels?: string[];
+  oneOf?: {
+    const: number;
+    title?: string;
+  }[];
   minimum?: number;
   maximum?: number;
   step?: number;
@@ -12,6 +14,7 @@ interface SliderSchema {
 }
 
 interface SliderOptions {
+  enumNames?: string[];
   suffix?: string;
   hideInput?: boolean;
 }
@@ -31,8 +34,18 @@ const SliderWidget = ({
   options,
   readonly,
 }: SliderWidgetProps) => {
-  const { defaultValue, values, labels, minimum, maximum, step, kind } = schema;
+  const {
+    defaultValue,
+    oneOf: elements,
+    minimum,
+    maximum,
+    step,
+    kind,
+  } = schema;
   const { suffix, hideInput } = options;
+
+  const values = elements?.map((e) => e.const);
+  const labels = elements?.map((e) => e.title);
 
   const isDiscrete = kind === "discrete";
 
