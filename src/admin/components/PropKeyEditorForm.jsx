@@ -4,6 +4,7 @@ import { hiddenFields } from "../utils/fieldTypes";
 import widgets from "../formComponents/widgets";
 import { useContext } from "react";
 import CustomizationContext from "../../contexts/CustomizationContext";
+import PropKeyEditorObjectFieldTemplate from "../formComponents/PropKeyEditorObjectFieldTemplate";
 
 const PropertyKeyEditorForm = ({
   uiSchema = {},
@@ -16,6 +17,8 @@ const PropertyKeyEditorForm = ({
   const customizationContext = useContext(CustomizationContext);
 
   const updatedFormData = { ...formData };
+
+  console.log(updatedFormData);
 
   let type;
 
@@ -55,15 +58,35 @@ const PropertyKeyEditorForm = ({
     ...hiddenFields,
   };
 
+  // console.log(objs[type]?.[`${optionsSchemaObject}`]);
+  // console.log(objs[type]?.[`${optionsUiSchemaObject}`]);
+
+  const mySchema = objs[type].optionsSchema || {};
+  const myUiSchema = objs[type].optionsUiSchema || {};
+
+  // console.log("mySchema", mySchema);
+  // console.log("myUiSchema", myUiSchema);
+
+  const combinedSchema = { ...mySchema };
+  combinedSchema.properties = {
+    ...mySchema.properties,
+    ...myUiSchema.properties,
+  };
+
+  // console.log("combinedSchema", combinedSchema);
+
   return (
     <Form
-      schema={objs[type]?.[`${optionsSchemaObject}`] || {}}
-      uiSchema={objs[type]?.[`${optionsUiSchemaObject}`] || {}}
+      // schema={objs[type]?.[`${optionsSchemaObject}`] || {}}
+      // uiSchema={objs[type]?.[`${optionsUiSchemaObject}`] || {}}
+      schema={combinedSchema}
+      // uiSchema={objs[type] || {}}
       widgets={widgets}
       formData={updatedFormData}
       onChange={onChange}
       liveValidate
       hideAnchors
+      // ObjectFieldTemplate={PropKeyEditorObjectFieldTemplate}
     />
   );
 };

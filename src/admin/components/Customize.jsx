@@ -22,11 +22,11 @@ const Customize = () => {
   const uiPath = useSelector((state) => state.schemaWizard.field.uiPath);
 
   const schema = useSelector(
-    (state) => path && get(state.schemaWizard, ["current", "schema", ...path]),
+    (state) => path && get(state.schemaWizard, ["current", "schema", ...path])
   );
   const uiSchema = useSelector(
     (state) =>
-      uiPath && get(state.schemaWizard, ["current", "uiSchema", ...uiPath]),
+      uiPath && get(state.schemaWizard, ["current", "uiSchema", ...uiPath])
   );
 
   useEffect(() => {
@@ -37,7 +37,27 @@ const Customize = () => {
   }, [uiSchema]);
 
   const _onSchemaChange = (data) => {
-    dispatch(updateSchemaByPath({ path: path, value: data.formData }));
+    console.log("Schema change", data.formData);
+    const { formData } = data;
+    const uiProps = {};
+    const restProps = {};
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key.startsWith("ui:")) {
+        uiProps[key] = value;
+      } else {
+        restProps[key] = value;
+      }
+    });
+
+    // console.log("UI Props", uiProps);
+    // console.log("Rest Props", restProps);
+
+    if (Object.keys(uiProps).length > 0) {
+      // console.log("Updating UI Schema", uiPath, uiProps);
+      dispatch(updateUiSchemaByPath({ path: uiPath, value: uiProps }));
+    }
+    dispatch(updateSchemaByPath({ path: path, value: restProps }));
   };
   const _onUiSchemaChange = (data) => {
     dispatch(updateUiSchemaByPath({ path: uiPath, value: data.formData }));
@@ -52,7 +72,7 @@ const Customize = () => {
           ...rest,
           "ui:options": { ...uiOptions, size: newSize },
         },
-      }),
+      })
     );
   };
 
@@ -66,9 +86,18 @@ const Customize = () => {
           ...rest,
           "ui:options": { ...uiOptions, justify: newAlign },
         },
-      }),
+      })
     );
   };
+
+  // console.log(schema);
+  // console.log(uiSchema);
+
+  const combinedSchema = { ...schema, ...uiSchema };
+  // combinedSchema.properties = {
+  //   ...schema.properties,
+  //   ...uiSchema.properties,
+  // };
 
   return (
     <Tabs
@@ -84,7 +113,7 @@ const Customize = () => {
             <PropertyKeyEditorForm
               schema={schema && schema}
               uiSchema={uiSchema && uiSchema}
-              formData={schema && schema}
+              formData={combinedSchema}
               onChange={_onSchemaChange}
               optionsSchemaObject="optionsSchema"
               optionsUiSchemaObject="optionsSchemaUiSchema"
