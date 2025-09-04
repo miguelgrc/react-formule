@@ -1,7 +1,6 @@
 import PropTypes from "prop-types";
 import Form from "../../forms/Form";
 import { hiddenFields } from "../utils/fieldTypes";
-import widgets from "../formComponents/widgets";
 import { useContext } from "react";
 import CustomizationContext from "../../contexts/CustomizationContext";
 import PropKeyEditorObjectFieldTemplate from "../formComponents/PropKeyEditorObjectFieldTemplate";
@@ -11,14 +10,11 @@ const PropertyKeyEditorForm = ({
   schema = {},
   formData = {},
   onChange = null,
-  optionsSchemaObject,
-  optionsUiSchemaObject,
+  isRoot,
 }) => {
   const customizationContext = useContext(CustomizationContext);
 
   const updatedFormData = { ...formData };
-
-  console.log(updatedFormData);
 
   let type;
 
@@ -58,35 +54,40 @@ const PropertyKeyEditorForm = ({
     ...hiddenFields,
   };
 
-  // console.log(objs[type]?.[`${optionsSchemaObject}`]);
-  // console.log(objs[type]?.[`${optionsUiSchemaObject}`]);
+  const {
+    optionsSchema = {},
+    optionsUiSchema = {},
+    settingsOrder = null,
+  } = objs[type];
 
-  const mySchema = objs[type].optionsSchema || {};
-  const myUiSchema = objs[type].optionsUiSchema || {};
+  const schemaProps = optionsSchema.properties || {};
+  const uiSchemaProps = optionsUiSchema.properties || {};
 
-  // console.log("mySchema", mySchema);
-  // console.log("myUiSchema", myUiSchema);
+  let combinedProperties = { ...schemaProps, ...uiSchemaProps };
 
-  const combinedSchema = { ...mySchema };
-  combinedSchema.properties = {
-    ...mySchema.properties,
-    ...myUiSchema.properties,
-  };
+  if (settingsOrder) {
+    combinedProperties = settingsOrder.reduce((acc, key) => {
+      if (key === "*") {
+        return { ...acc, ...schemaProps, ...uiSchemaProps };
+      }
+      if (schemaProps[key] !== undefined || uiSchemaProps[key] !== undefined) {
+        delete acc[key]; // Guarantee order for items after * (e.g. ["a", "*", "c"])
+        acc[key] = schemaProps[key] ?? uiSchemaProps[key];
+      }
+      return acc;
+    }, {});
+  }
 
-  // console.log("combinedSchema", combinedSchema);
+  const combinedSchema = { ...optionsSchema, properties: combinedProperties };
 
   return (
     <Form
-      // schema={objs[type]?.[`${optionsSchemaObject}`] || {}}
-      // uiSchema={objs[type]?.[`${optionsUiSchemaObject}`] || {}}
-      schema={combinedSchema}
-      // uiSchema={objs[type] || {}}
-      widgets={widgets}
+      schema={isRoot ? optionsSchema : combinedSchema}
       formData={updatedFormData}
       onChange={onChange}
       liveValidate
       hideAnchors
-      // ObjectFieldTemplate={PropKeyEditorObjectFieldTemplate}
+      ObjectFieldTemplate={PropKeyEditorObjectFieldTemplate}
     />
   );
 };
@@ -96,8 +97,7 @@ PropertyKeyEditorForm.propTypes = {
   uiSchema: PropTypes.object,
   formData: PropTypes.object,
   onChange: PropTypes.func,
-  optionsSchemaObject: PropTypes.object,
-  optionsUiSchemaObject: PropTypes.object,
+  isRoot: PropTypes.bool,
 };
 
 export default PropertyKeyEditorForm;

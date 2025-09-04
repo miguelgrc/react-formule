@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PropertyKeyEditorForm from "./PropKeyEditorForm";
 
-import { Radio, Space, Tabs, Typography } from "antd";
+import { Radio, Space, Typography } from "antd";
 import { SIZE_OPTIONS } from "../utils";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,11 +22,11 @@ const Customize = () => {
   const uiPath = useSelector((state) => state.schemaWizard.field.uiPath);
 
   const schema = useSelector(
-    (state) => path && get(state.schemaWizard, ["current", "schema", ...path])
+    (state) => path && get(state.schemaWizard, ["current", "schema", ...path]),
   );
   const uiSchema = useSelector(
     (state) =>
-      uiPath && get(state.schemaWizard, ["current", "uiSchema", ...uiPath])
+      uiPath && get(state.schemaWizard, ["current", "uiSchema", ...uiPath]),
   );
 
   useEffect(() => {
@@ -36,13 +36,11 @@ const Customize = () => {
     }
   }, [uiSchema]);
 
-  const _onSchemaChange = (data) => {
-    console.log("Schema change", data.formData);
-    const { formData } = data;
+  const handleSchemasChange = (data) => {
     const uiProps = {};
     const restProps = {};
 
-    Object.entries(formData).forEach(([key, value]) => {
+    Object.entries(data.formData).forEach(([key, value]) => {
       if (key.startsWith("ui:")) {
         uiProps[key] = value;
       } else {
@@ -50,18 +48,12 @@ const Customize = () => {
       }
     });
 
-    // console.log("UI Props", uiProps);
-    // console.log("Rest Props", restProps);
-
     if (Object.keys(uiProps).length > 0) {
-      // console.log("Updating UI Schema", uiPath, uiProps);
       dispatch(updateUiSchemaByPath({ path: uiPath, value: uiProps }));
     }
     dispatch(updateSchemaByPath({ path: path, value: restProps }));
   };
-  const _onUiSchemaChange = (data) => {
-    dispatch(updateUiSchemaByPath({ path: uiPath, value: data.formData }));
-  };
+
   const sizeChange = (newSize) => {
     let { "ui:options": uiOptions = {}, ...rest } = uiSchema;
 
@@ -72,7 +64,7 @@ const Customize = () => {
           ...rest,
           "ui:options": { ...uiOptions, size: newSize },
         },
-      })
+      }),
     );
   };
 
@@ -86,91 +78,56 @@ const Customize = () => {
           ...rest,
           "ui:options": { ...uiOptions, justify: newAlign },
         },
-      })
+      }),
     );
   };
 
-  // console.log(schema);
-  // console.log(uiSchema);
-
   const combinedSchema = { ...schema, ...uiSchema };
-  // combinedSchema.properties = {
-  //   ...schema.properties,
-  //   ...uiSchema.properties,
-  // };
 
   return (
-    <Tabs
-      className="scrollableTabs"
-      centered
-      style={{ height: "100%", width: "100%" }}
-      tabBarStyle={{ marginBottom: "0px" }}
-      items={[
-        {
-          key: "1",
-          label: "Settings",
-          children: (
-            <PropertyKeyEditorForm
-              schema={schema && schema}
-              uiSchema={uiSchema && uiSchema}
-              formData={combinedSchema}
-              onChange={_onSchemaChange}
-              optionsSchemaObject="optionsSchema"
-              optionsUiSchemaObject="optionsSchemaUiSchema"
-            />
-          ),
-        },
-        {
-          key: "2",
-          label: "UI Settings",
-          children:
-            path.length != 0 ? (
-              <PropertyKeyEditorForm
-                schema={schema && schema}
-                uiSchema={uiSchema && uiSchema}
-                formData={uiSchema && uiSchema}
-                onChange={_onUiSchemaChange}
-                optionsSchemaObject="optionsUiSchema"
-                optionsUiSchemaObject="optionsUiSchemaUiSchema"
-                key={uiPath}
-              />
-            ) : (
-              <Space
-                direction="vertical"
-                style={{ padding: "0 12px", width: "100%" }}
-              >
-                <Typography.Text>Size Options</Typography.Text>
-                <Radio.Group
-                  size="small"
-                  block
-                  onChange={(e) => sizeChange(e.target.value)}
-                  value={size}
-                  style={{ paddingBottom: "15px" }}
-                >
-                  {Object.keys(SIZE_OPTIONS).map((size) => (
-                    <Radio.Button key={size} value={size}>
-                      {size}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-                <Typography.Text>Align Options</Typography.Text>
-                <Radio.Group
-                  size="small"
-                  block
-                  onChange={(e) => alignChange(e.target.value)}
-                  value={justify}
-                >
-                  {JUSTIFY_OPTIONS.map((justify) => (
-                    <Radio.Button key={justify} value={justify}>
-                      {justify}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </Space>
-            ),
-        },
-      ]}
-    />
+    <div style={{ width: "100%", height: "100%", overflowY: "auto" }}>
+      {!path.length && (
+        <Space
+          direction="vertical"
+          style={{ padding: "0 12px 12px 12px", width: "100%" }}
+        >
+          <Typography.Text strong>Size Options</Typography.Text>
+          <Radio.Group
+            size="small"
+            block
+            onChange={(e) => sizeChange(e.target.value)}
+            value={size}
+            style={{ paddingBottom: "15px" }}
+          >
+            {Object.keys(SIZE_OPTIONS).map((size) => (
+              <Radio.Button key={size} value={size}>
+                {size}
+              </Radio.Button>
+            ))}
+          </Radio.Group>
+          <Typography.Text strong>Align Options</Typography.Text>
+          <Radio.Group
+            size="small"
+            block
+            onChange={(e) => alignChange(e.target.value)}
+            value={justify}
+          >
+            {JUSTIFY_OPTIONS.map((justify) => (
+              <Radio.Button key={justify} value={justify}>
+                {justify}
+              </Radio.Button>
+            ))}
+          </Radio.Group>
+        </Space>
+      )}
+      <PropertyKeyEditorForm
+        schema={schema && schema}
+        uiSchema={uiSchema && uiSchema}
+        formData={combinedSchema}
+        onChange={handleSchemasChange}
+        isRoot={!path.length}
+      />
+    </div>
   );
 };
 

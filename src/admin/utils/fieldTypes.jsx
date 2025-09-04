@@ -485,6 +485,7 @@ const simple = {
     title: "Text",
     icon: <FontSizeOutlined />,
     description: "Text field supporting validation",
+    settingsOrder: ["title", "ui:label", "isRequired", "*", "description"],
     className: "tour-text-field",
     child: {},
     optionsSchema: {
